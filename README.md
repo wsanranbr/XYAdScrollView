@@ -1,9 +1,6 @@
 # XYAdScrollView
 
-
 //------1.初始化控件
-- (XYAdScrollView *)adScrollView
-{
     if (!_adScrollView) {
         self.adScrollView = [[XYAdScrollView alloc] init];
         [self.adScrollView setFrame:CGRectMake(0, 64, self.view.width, 200)];
@@ -14,8 +11,6 @@
         self.adScrollView.titleAliment = XYTitleAlimentNone;
         
     }
-    return _adScrollView;
-}
 
 
 //------2.添加到当前视图  adScrollView

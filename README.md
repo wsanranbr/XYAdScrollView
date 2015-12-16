@@ -2,7 +2,7 @@
 
 
 
-//------1.初始化控件
+#//------1.初始化控件
     if (!_adScrollView) {
         self.adScrollView = [[XYAdScrollView alloc] init];
         [self.adScrollView setFrame:CGRectMake(0, 64, self.view.width, 200)];

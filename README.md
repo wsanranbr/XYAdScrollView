@@ -2,9 +2,6 @@
 
 
 
-
-//------2.添加到当前视图  adScrollView
-
 //------1.初始化控件
     if (!_adScrollView) {
         self.adScrollView = [[XYAdScrollView alloc] init];
@@ -16,6 +13,11 @@
         self.adScrollView.titleAliment = XYTitleAlimentNone;
         
     }
+    
+
+//------2.添加到当前视图  adScrollView
+
+
     
     [self.view addSubview:self.adScrollView];
     

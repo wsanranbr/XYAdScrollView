@@ -13,6 +13,7 @@
 
 @protocol XYAdDelegate <NSObject>
 
+@optional
 - (void)adScrollView:(XYAdScrollView *)scrollView didSelectItemAtIndex:(NSInteger)index;
 
 @end
@@ -24,12 +25,6 @@ typedef enum {
     XYPageContolAlimentCenter
 } XYPageContolAliment;
 
-typedef enum {
-    XYPageContolStyleClassic,        // 系统自带经典样式
-    XYPageContolStyleAnimated,       // 动画效果pagecontrol
-    XYPageContolStyleNone            // 不显示pagecontrol
-} XYPageContolStyle;
-
 typedef enum
 {
     XYTitleAlimentNone,
@@ -38,7 +33,16 @@ typedef enum
     XYTitleAlimentRight,
 } XYTitleAliment;
 
+typedef enum
+{
+    XYAdScrollViewStyleLocal,
+    XYAdScrollViewStyleRemote,
+} XYAdScrollViewStyle;
+
 @interface XYAdScrollView : UIView
+
+//图片类型
+@property(nonatomic, assign) XYAdScrollViewStyle adScrollViewStyle;
 
 // 是否自动滚动,默认Yes
 @property (nonatomic, assign, getter=isAutoScroll) BOOL autoScroll;
@@ -49,9 +53,6 @@ typedef enum
 //pagecontrol布局样式，默认为居中显示
 @property (nonatomic, assign) XYPageContolAliment pageControlAliment;
 
-//pagecontrol样式，默认为动画样式
-@property (nonatomic, assign) XYPageContolStyle pageContolStyle;
-
 //文字布局样式，默认为左边显示
 @property (nonatomic, assign) XYTitleAliment titleAliment;
 
@@ -59,7 +60,7 @@ typedef enum
 @property (nonatomic, strong) NSString *placeholderImageName;
 
 //数据源
-@property(nonatomic, strong) NSArray *localizationImagesGroup;
+@property(nonatomic, strong) NSArray *modelArray;
 
 //文字颜色
 @property (nonatomic, strong) UIColor *titleColor;

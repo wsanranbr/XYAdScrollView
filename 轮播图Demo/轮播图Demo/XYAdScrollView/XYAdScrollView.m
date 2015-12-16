@@ -9,21 +9,35 @@
 #import "XYAdScrollView.h"
 #import "UIView+Extension.h"
 #import "XYAdModel.h"
+#import "UIImageView+WebCache.h"
 
 @interface XYAdScrollView ()<UIScrollViewDelegate, UIGestureRecognizerDelegate>
-{
-    BOOL _isTimeUp;
-}
 
 @property(nonatomic, strong) UIScrollView *scrollView;
 @property(nonatomic, strong) UIPageControl *pageControl;        //翻页
 @property(nonatomic, assign) NSInteger number;      //总个数
 @property(nonatomic, assign) NSInteger index;       //当前
 @property(nonatomic, strong) NSTimer *timer;        //计时器
+@property(nonatomic, weak) UIImageView *backgroundImageView;//当加载时的背景图
 
 @end
 
 @implementation XYAdScrollView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        self.scrollTimeInterval = 2.0f;  //默认滚动时间为2秒
+        self.autoScroll = YES;  //默认自动滚动
+        self.titleAliment = XYTitleAlimentLeft;
+        self.pageControlAliment = XYPageContolAlimentRight;
+        self.titleBackgroundColor = [UIColor clearColor];
+        self.titleColor = CustomColor(255, 255, 255);
+        self.titleFont = [UIFont systemFontOfSize:14];
+    }
+    return self;
+}
 
 - (UIScrollView *)scrollView
 {
@@ -39,16 +53,7 @@
         self.scrollView.bounces = NO;
         self.scrollView.delegate = self;
         [self addSubview:self.scrollView];
-        
-        self.scrollView.backgroundColor = [UIColor blueColor];
-        self.scrollTimeInterval = 2.0f;  //默认滚动时间为2秒
-        self.autoScroll = YES;  //默认自动滚动
-        self.titleAliment = XYTitleAlimentLeft;
-        self.pageControlAliment = XYPageContolAlimentRight;
-        self.titleBackgroundColor = [UIColor clearColor];
-        self.titleColor = CustomColor(255, 255, 255);
-        NSLog(@"self.height---> %f", self.height);
-        
+ 
     }
     return _scrollView;
 }
@@ -66,6 +71,20 @@
         self.pageControl = pageControl;
     }
     return _pageControl;
+}
+
+- (UIImageView *)backgroundImageView
+{
+    if (!_backgroundImageView) {
+        UIImageView *bgImageView = [[UIImageView alloc] init];
+        bgImageView.x = 0;
+        bgImageView.y = 0;
+        bgImageView.width = self.width;
+        bgImageView.height = self.height;
+        self.backgroundImageView = bgImageView;
+        [self addSubview:bgImageView];
+    }
+    return _backgroundImageView;
 }
 
 - (void)setScrollTimeInterval:(CGFloat)scrollTimeInterval
@@ -88,10 +107,30 @@
     _pageControlAliment = pageControlAliment;
 }
 
+- (void)setPlaceholderImageName:(NSString *)placeholderImageName
+{
+    _placeholderImageName = placeholderImageName;
+    self.backgroundImageView.image = [UIImage imageNamed:placeholderImageName];
+}
+
+- (void)setTitleBackgroundColor:(UIColor *)titleBackgroundColor
+{
+    _titleBackgroundColor = titleBackgroundColor;
+}
+
+- (void)setTitleColor:(UIColor *)titleColor
+{
+    _titleColor = titleColor;
+}
+
+- (void)setTitleFont:(UIFont *)titleFont
+{
+    _titleFont = titleFont;
+}
+
 - (NSTimer *)timer
 {
     if (!_timer) {
-//        self.timer = [NSTimer timerWithTimeInterval:10.0 target:self selector:@selector(scrollToNext) userInfo:nil repeats:YES];
         self.timer = [NSTimer scheduledTimerWithTimeInterval:self.scrollTimeInterval target:self selector:@selector(scrollToNext) userInfo:nil repeats:YES];
         [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
     }
@@ -100,18 +139,12 @@
 
 - (void)scrollToNext
 {
-    NSLog(@"scrollToNext");
-    
-    //判断当前视图是否可见
-    if (self.window) {
-        NSLog(@"isViewLoaded, self.window--->%@", self.window);
-    }
-    else
-    {
-        NSLog(@"self.viewController is invisiable");
+    //判断当前视图是否可见,当前视图不可见时，图片不滚动
+    if (!self.window) {
         return ;
     }
     
+    //计算下一页
     NSInteger currentPage = self.pageControl.currentPage;
     currentPage += 1;
     CGFloat curOffset = self.scrollView.width * (currentPage+1);
@@ -120,9 +153,7 @@
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self scrollViewDidEndDecelerating:self.scrollView];
     });
-    
-    
-    
+
 }
 
 #pragma mark
@@ -169,21 +200,12 @@
 /**
  *  设置数据源
  *
- *  @param localizationImagesGroup <#localizationImagesGroup description#>
+ *  @param modelArray
  */
-- (void)setLocalizationImagesGroup:(NSArray *)localizationImagesGroup
+- (void)setModelArray:(NSArray *)modelArray
 {
-    _localizationImagesGroup = localizationImagesGroup;
-    self.number = localizationImagesGroup.count;
-    
-    for (id da in localizationImagesGroup) {
-        if ([da isKindOfClass:[XYAdModel class]]) {
-            NSLog(@"da--->%@", da);
-        }
-    }
-    
-    //self.scrollView.frame = self.bounds;
-    self.scrollView.backgroundColor = CustomColor(255, 0, 0);
+    _modelArray = modelArray;
+    self.number = modelArray.count;
     
     //设置scrollView的页数，N+2个，用于循环
     self.scrollView.contentSize = CGSizeMake(self.width*(self.number+2), self.height);
@@ -217,8 +239,12 @@
 
 - (void)addImageView
 {
-    if (_localizationImagesGroup.count > 0)
+    if (self.modelArray.count > 0)
     {
+        if (self.adScrollViewStyle == XYAdScrollViewStyleLocal) {
+            [self.backgroundImageView removeFromSuperview];
+        }
+        
         CGFloat scrollW = self.scrollView.frame.size.width;
         CGFloat scrollH = self.scrollView.frame.size.height;
         
@@ -245,24 +271,35 @@
             
             if (i == 0)
             {
-                model = [self.localizationImagesGroup objectAtIndex:self.number-1];
+                model = [self.modelArray objectAtIndex:self.number-1];
             }
             else if (i == self.number+1)
             {
-                model = [self.localizationImagesGroup objectAtIndex:0];
+                model = [self.modelArray objectAtIndex:0];
             }
             else
             {
-                model = [self.localizationImagesGroup objectAtIndex:(i-1)];
+                model = [self.modelArray objectAtIndex:(i-1)];
             }
             
-            NSString *name = model.imageName;
-            imageView.image = [UIImage imageNamed:name];
+            //网络图片
+            if (self.adScrollViewStyle == XYAdScrollViewStyleRemote) {
+                NSURL *imageUrl = [NSURL URLWithString:model.imageUrl];
+
+                [imageView sd_setImageWithURL:imageUrl placeholderImage:[UIImage imageNamed:self.placeholderImageName] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+                    
+//                    NSLog(@"图片加载完成后做的事情");
+                }];
+                
+            }
+            else
+            {
+                NSString *name = model.imageName;
+                imageView.image = [UIImage imageNamed:name];
+            }
+            
             [self.scrollView addSubview:imageView];
-            
-            
-            //        self.titleLabel.frame = CGRectMake(self.width/6, self.height*85/100, self.width*2/3, self.height*1/10);
-            
+
             if (self.titleAliment != XYTitleAlimentNone) {
                 
                 UILabel *titleLabel;

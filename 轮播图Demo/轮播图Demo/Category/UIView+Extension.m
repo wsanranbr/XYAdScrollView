@@ -66,6 +66,11 @@
     self.frame = frame;
 }
 
+- (CGSize)size
+{
+    return self.frame.size;
+}
+
 - (void)setCenterX:(CGFloat)centerX
 {
     CGPoint center = self.center;
@@ -88,11 +93,6 @@
 - (CGFloat)centerY
 {
     return self.center.y;
-}
-
-- (CGSize)size
-{
-    return self.frame.size;
 }
 
 - (void)setOrigin:(CGPoint)origin

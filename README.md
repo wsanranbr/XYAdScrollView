@@ -1,7 +1,21 @@
 # XYAdScrollView
 
 
-
+- (XYAdScrollView *)adScrollView
+{
+    //------1.初始化控件
+    if (!_adScrollView) {
+        self.adScrollView = [[XYAdScrollView alloc] init];
+        [self.adScrollView setFrame:CGRectMake(0, 64, self.view.width, 200)];
+        self.adScrollView.delegate = self;
+        self.adScrollView.placeholderImageName = @"bg_ad_default";
+        self.adScrollView.adScrollViewStyle = XYAdScrollViewStyleRemote;//使用网络图片
+        self.adScrollView.pageControlAliment = XYPageContolAlimentCenter;
+        self.adScrollView.titleAliment = XYTitleAlimentNone;
+        
+    }
+    return _adScrollView;
+}
 
 
 //------2.添加到当前视图  adScrollView
